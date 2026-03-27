@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Smart Telugu Music System</title>
+
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: Arial;
+            text-align: center;
+            color: white;
+
+            /* ✅ Single clean background */
+            background: #1e3c72;
+        }
+
+        h1 {
+            margin-top: 20px;
+            text-shadow: 2px 2px 10px black;
+        }
+
+        /* 🎥 BIG CAMERA */
+        video {
+            width: 650px;
+            height: 420px;
+            border-radius: 20px;
+            border: 6px solid white;
+
+            /* ✨ glow effect */
+            box-shadow: 0 0 30px #ffffff,
+                        0 0 60px #00e5ff,
+                        0 0 90px #ff4081;
+
+            margin-top: 20px;
+        }
+
+        button {
+            padding: 12px 25px;
+            font-size: 16px;
+            background-color: #ff9800;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            color: white;
+            box-shadow: 0 0 15px #ff9800;
+            margin-top: 20px;
+        }
+
+        button:hover {
+            background-color: #ff5722;
+        }
+
+        #emotion {
+            margin-top: 20px;
+            font-size: 26px;
+            font-weight: bold;
+            text-shadow: 2px 2px 10px black;
+        }
+
+        /* 🎵 Floating music symbols */
+        .music {
+            position: absolute;
+            font-size: 30px;
+            animation: float 10s linear infinite;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(100vh);
+                opacity: 0;
+            }
+            50% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-10vh);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>🎵 Smart Telugu Music System 🎵</h1>
+
+    <video id="video" autoplay></video>
+    <br>
+
+    <button onclick="capture()">Detect Mood & Play Music</button>
+
+    <h2 id="emotion"></h2>
+
+    <canvas id="canvas" style="display:none;"></canvas>
+
+    <!-- 🎵 Colorful floating music -->
+    <script>
+        const colors = ["#ff4081", "#00e5ff", "#ffff00", "#00ff9f", "#ff6a00"];
+
+        for (let i = 0; i < 40; i++) {
+            let music = document.createElement("div");
+            music.className = "music";
+            music.innerText = "🎵";
+
+            music.style.left = Math.random() * 100 + "vw";
+            music.style.animationDuration = (5 + Math.random() * 5) + "s";
+            music.style.fontSize = (20 + Math.random() * 30) + "px";
+            music.style.color = colors[Math.floor(Math.random() * colors.length)];
+
+            document.body.appendChild(music);
+        }
+    </script>
+
+    <script>
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+
+        // 📸 Start camera
+        navigator.mediaDevices.getUserMedia({ video: true })
+        .then(stream => {
+            video.srcObject = stream;
+        });
+
+        function capture() {
+            const context = canvas.getContext('2d');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+
+            context.drawImage(video, 0, 0);
+
+            let image = canvas.toDataURL('image/png');
+
+            fetch('/detect', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ image: image })
+            })
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById("emotion").innerText =
+                    "Detected Mood: " + data.emotion;
+
+                window.open("https://www.youtube.com/results?search_query=" + data.search);
+            });
+        }
+    </script>
+
+</body>
+</html>
